@@ -1,0 +1,104 @@
+@startuml
+title Questao 1 - Provisionamento Multinuvem (Abstract Factory + Singleton)
+
+interface ProvedorNuvem <<AbstractFactory>> {
+  + getNome() : String
+  + criarMaquinaVirtual() : MaquinaVirtual
+  + criarArmazenamento(gb : int) : Armazenamento
+  + criarFila() : FilaMensagens
+  + getCustoHoraMaquina() : double
+  + getCustoGbMes() : double
+  + getCustoFilaMes() : double
+}
+class AwsProvedor <<ConcreteFactory>>
+class AzureProvedor <<ConcreteFactory>>
+
+interface MaquinaVirtual <<AbstractProduct>> {
+  + getId() : String
+  + getCustoPorHora() : double
+}
+interface Armazenamento <<AbstractProduct>> {
+  + getId() : String
+  + getGb() : int
+  + getCustoPorGb() : double
+}
+interface FilaMensagens <<AbstractProduct>> {
+  + getId() : String
+  + getCustoMensal() : double
+}
+
+class AwsMaquinaVirtual <<ConcreteProduct>>
+class AwsArmazenamento <<ConcreteProduct>>
+class AwsFila <<ConcreteProduct>>
+class AzureMaquinaVirtual <<ConcreteProduct>>
+class AzureArmazenamento <<ConcreteProduct>>
+class AzureFila <<ConcreteProduct>>
+
+class MontadorDeAmbiente <<Client>> {
+  - provedor : ProvedorNuvem
+  + montar(solicitacao : Solicitacao) : Ambiente
+}
+class Ambiente {
+  - nome : String
+  - regiao : String
+  - custoMensal : double
+  + {static} estimarCusto(p : ProvedorNuvem, qtd : int, gb : int) : double
+  + resumo() : String
+}
+class Solicitacao {
+  - nomeAmbiente : String
+  - provedor : String
+  - maquinas : int
+  - gbArmazenamento : int
+}
+class EscolhaDeProvedor <<Seletor>> {
+  + {static} escolher(nome : String) : ProvedorNuvem
+}
+class Configuracao <<Singleton>> {
+  - {static} Holder.INSTANCIA : Configuracao
+  - regiaoPadrao : String
+  - orcamentoMensalMaximo : double
+  - Configuracao()
+  + {static} getInstance() : Configuracao
+}
+class AuditLog <<Singleton>> {
+  - {static} INSTANCIA : AuditLog
+  - registros : List<String>
+  - AuditLog()
+  + {static} getInstance() : AuditLog
+  + registrar(ambiente, provedor, resultado) : void
+  + getRegistros() : List<String>
+}
+class Main
+
+ProvedorNuvem <|.. AwsProvedor
+ProvedorNuvem <|.. AzureProvedor
+MaquinaVirtual <|.. AwsMaquinaVirtual
+MaquinaVirtual <|.. AzureMaquinaVirtual
+Armazenamento <|.. AwsArmazenamento
+Armazenamento <|.. AzureArmazenamento
+FilaMensagens <|.. AwsFila
+FilaMensagens <|.. AzureFila
+
+AwsProvedor ..> AwsMaquinaVirtual : cria
+AwsProvedor ..> AwsArmazenamento : cria
+AwsProvedor ..> AwsFila : cria
+AzureProvedor ..> AzureMaquinaVirtual : cria
+AzureProvedor ..> AzureArmazenamento : cria
+AzureProvedor ..> AzureFila : cria
+
+MontadorDeAmbiente --> ProvedorNuvem
+MontadorDeAmbiente ..> Ambiente : cria
+MontadorDeAmbiente ..> Solicitacao
+MontadorDeAmbiente ..> Configuracao
+MontadorDeAmbiente ..> AuditLog
+Ambiente ..> ProvedorNuvem
+Ambiente o--> "*" MaquinaVirtual
+Ambiente o--> Armazenamento
+Ambiente o--> FilaMensagens
+EscolhaDeProvedor ..> AwsProvedor : cria
+EscolhaDeProvedor ..> AzureProvedor : cria
+Main ..> EscolhaDeProvedor
+Main ..> MontadorDeAmbiente
+Main ..> AuditLog
+@enduml

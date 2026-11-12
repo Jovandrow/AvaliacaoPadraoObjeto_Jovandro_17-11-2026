@@ -1,0 +1,96 @@
+@startuml
+title Questao 2 - Casa de Leiloes Online (Observer + Strategy + Decorator)
+
+class Lote <<Subject>> {
+  - nome : String
+  - precoInicial : BigDecimal
+  - precoReserva : BigDecimal
+  - lanceAtual : BigDecimal
+  - aberto : boolean
+  + acompanhar(i : Interessado) : void
+  + deixarDeAcompanhar(i : Interessado) : void
+  + darLance(l : Licitante, valor : BigDecimal) : void
+  + trocarRegraComissao(r : RegraComissao) : void
+  + encerrar() : void
+}
+interface Licitante {
+  + getNome() : String
+}
+interface Interessado <<Observer>> {
+  + atualizar(lote : Lote, lance : Lance) : void
+}
+class Lance {
+  - valor : BigDecimal
+}
+class Participante <<ConcreteObserver>>
+class PainelLeiloeiro <<ConcreteObserver>>
+class Auditor <<ConcreteObserver>>
+
+class Categoria {
+  - nome : String
+}
+interface RegraComissao <<Strategy>> {
+  + getNome() : String
+  + calcular(valorVenda : BigDecimal) : BigDecimal
+}
+class ComissaoArte <<ConcreteStrategy>>
+class ComissaoVeiculos <<ConcreteStrategy>>
+class ComissaoImoveis <<ConcreteStrategy>>
+class ComissaoEletronicos <<ConcreteStrategy>>
+
+interface Compra <<Component>> {
+  + getValorVenda() : BigDecimal
+  + getLinhas() : List<LinhaFatura>
+  + getTotal() : BigDecimal
+}
+class VendaBase <<ConcreteComponent>>
+abstract class ServicoAdicional <<Decorator>> {
+  - compra : Compra
+  # {abstract} calcularCusto(valorVenda : BigDecimal) : BigDecimal
+}
+class SeguroTransporte <<ConcreteDecorator>>
+class CertificadoAutenticidade <<ConcreteDecorator>>
+class EmbalagemEspecial <<ConcreteDecorator>>
+class EntregaExpressa <<ConcreteDecorator>>
+class LinhaFatura
+class Fatura
+class AcertoVendedor
+class LanceRecusadoException
+class Dinheiro
+class Main
+
+Lote o--> "*" Interessado : interessados
+Lote --> Categoria
+Lote --> RegraComissao : regraComissao
+Lote ..> Licitante
+Lote ..> Lance : cria
+Lote ..> LanceRecusadoException
+Categoria --> RegraComissao : regraPadrao
+Lance --> Licitante
+
+Interessado <|.. Participante
+Interessado <|.. PainelLeiloeiro
+Interessado <|.. Auditor
+Licitante <|.. Participante
+
+RegraComissao <|.. ComissaoArte
+RegraComissao <|.. ComissaoVeiculos
+RegraComissao <|.. ComissaoImoveis
+RegraComissao <|.. ComissaoEletronicos
+
+Compra <|.. VendaBase
+Compra <|.. ServicoAdicional
+ServicoAdicional o--> Compra : compra
+ServicoAdicional <|-- SeguroTransporte
+ServicoAdicional <|-- CertificadoAutenticidade
+ServicoAdicional <|-- EmbalagemEspecial
+ServicoAdicional <|-- EntregaExpressa
+VendaBase --> Lote
+Compra ..> LinhaFatura
+
+Fatura ..> Compra
+AcertoVendedor ..> Lote
+Main ..> Lote
+Main ..> Fatura
+Main ..> AcertoVendedor
+@enduml
